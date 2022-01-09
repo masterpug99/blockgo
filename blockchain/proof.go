@@ -12,14 +12,14 @@ import (
 
 // Take the data from the block
 
-// create a counter (nonce) which starts at 0
+// craete a counter(nonce) which starts at 0
 
 // create a hash of the data plus the counter
 
 // check the hash to see if it meets a set of requirements
 
-//Requirements:
-// The First few bytes must contain 0s
+// Requirements :
+// The first few bytes must contain 0s
 
 const Difficulty = 12
 
@@ -27,6 +27,7 @@ const Difficulty = 12
 // block header must be less than or equal to
 // in order for a new block to be awarded to a miner
 // this is used for setting the current mining difficulty
+
 type ProofOfWork struct {
 	Block  *Block
 	Target *big.Int
@@ -37,7 +38,6 @@ func NewProof(b *Block) *ProofOfWork {
 	target.Lsh(target, uint(256-Difficulty))
 
 	pow := &ProofOfWork{b, target}
-
 	return pow
 }
 
@@ -79,7 +79,6 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 
 func (pow *ProofOfWork) Validate() bool {
 	var intHash big.Int
-
 	data := pow.InitData(pow.Block.Nonce)
 
 	hash := sha256.Sum256(data)
