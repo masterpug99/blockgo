@@ -1,21 +1,64 @@
 package blockchain
 
+import (
+	"bytes"
+	"encoding/gob"
+
+	"github.com/masterpug99/learnblockgo/wallet"
+)
+
 // references of the previous output
 type TxInput struct {
-	ID  []byte
-	Out int // index of the transaction
-	Sig string
+	ID        []byte //  전 거래의 ID 를 저장
+	Out       int    // index of the transaction
+	Signature []byte
+	PubKey    []byte
 }
 
 type TxOutput struct {
-	Value  int
-	PubKey string // needed to unlock the value field
+	Value      int
+	PubKeyHash []byte // needed to unlock the value field
 }
 
-func (in *TxInput) CanUnlock(data string) bool {
-	return in.Sig == data
+type TxOutputs struct {
+	Outputs []TxOutput
 }
 
-func (out *TxOutput) CanBeUnlocked(data string) bool {
-	return out.PubKey == data
+func NewTXOutput(value int, address string) *TxOutput {
+	txo := &TxOutput{value, nil}
+	txo.Lock([]byte(address))
+
+	return txo
+}
+
+func (in *TxInput) UseKey(pubKeyHash []byte) bool {
+	lockingHash := wallet.PublicKeyHash(in.PubKey)
+
+	return bytes.Compare(lockingHash, pubKeyHash) == 0
+}
+
+func (out *TxOutput) Lock(address []byte) {
+	pubKeyHash := wallet.Base58Decode(address)
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
+	out.PubKeyHash = pubKeyHash
+}
+
+func (out *TxOutput) IsLockedWithKey(pubKeyHash []byte) bool {
+	return bytes.Compare(out.PubKeyHash, pubKeyHash) == 0
+}
+
+func (outs TxOutputs) Serialize() []byte {
+	var buffer bytes.Buffer
+	encode := gob.NewEncoder(&buffer)
+	err := encode.Encode(outs)
+	Handle(err)
+	return buffer.Bytes()
+}
+
+func DeserializeOutputs(data []byte) TxOutputs {
+	var outputs TxOutputs
+	decode := gob.NewDecoder(bytes.NewReader(data))
+	err := decode.Decode(&outputs)
+	Handle(err)
+	return outputs
 }

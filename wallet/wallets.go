@@ -25,7 +25,7 @@ func CreateWallets() (*Wallets, error) {
 	return &wallets, err
 }
 
-func (ws Wallets) GetWallet(address string) Wallet {
+func (ws Wallets) GetWallets(address string) Wallet {
 	return *ws.Wallets[address]
 }
 
@@ -64,13 +64,12 @@ func (ws *Wallets) LoadFile() error {
 	err = decoder.Decode(&wallets)
 
 	if err != nil {
-		return err
+		log.Panic(err)
 	}
 
 	ws.Wallets = wallets.Wallets
 
 	return nil
-
 }
 
 func (ws *Wallets) SaveFile() {
